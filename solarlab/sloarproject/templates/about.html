@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f6fa">
+  <title>About Solar Lab | Solar Lab</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("solarlab-theme"); } catch (e) { }
+      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+      var pal = null;
+      try { pal = localStorage.getItem("solarlab-palette"); } catch (e) { }
+      document.documentElement.setAttribute("data-palette", pal || "solar");
+    })();
+  </script>
+</head>
+
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="/">Solar Lab</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="label-to-dark">Dark mode</span>
+        <span class="label-to-light">Light mode</span>
+      </button>
+      <button class="menu-btn" id="menu-open" type="button" aria-label="Open menu" aria-expanded="false"
+        aria-controls="drawer">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/about" aria-current="page">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="drawer" id="drawer" aria-label="Menu">
+    <button class="menu-btn" id="menu-close" type="button" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/science">Science</a>
+    <a href="/features">Features</a>
+    <a href="/experiments">Experiments</a>
+    <a href="/simulator">Simulator</a>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <h1>About Solar Lab</h1>
+      <p class="lead">An interactive simulator that shows how the angle of sunlight changes the power a solar panel
+        produces.</p>
+    </div>
+    <div class="prose">
+      <h2>What it is</h2>
+      <p>Solar Lab is a web-based simulator. Visitors change the tilt of a solar panel, the strength of the sunlight and
+        the weather, then see the estimated electricity output change straight away.</p>
+      <p>The idea is simple: instead of telling people that the angle of a panel matters, let them move it and see the
+        result. Each change to a slider updates the picture and the power number at once, so the cause and the effect
+        sit side by side.</p>
+      <p>The project also shows how a scientific model works. A formula is turned into code, the code is tested against
+        numbers we can check by hand, and the results are compared with what we expect.</p>
+      <p>At its heart is Lambert's cosine law, which says the light a surface receives is proportional to the cosine of
+        the angle between the light and the surface's normal. Solar Lab turns that law into code and shows the results
+        as a live scene and bar graphs.</p>
+      <h2>Why I made it</h2>
+      <p>My project is an interactive digital model that simulates how solar energy generation changes throughout the
+        day based on the sun's position and the panel's tilt angle.</p>
+      <h2>Who it is for</h2>
+      <ul>
+        <li>Students learning how light and energy are related.</li>
+        <li>Visitors who want to try experiments without any equipment.</li>
+        <li>Anyone curious about why panels are tilted.</li>
+      </ul>
+      <h2>How it is built</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Technology</th>
+              <th scope="col">Used for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">HTML</th>
+              <td>Page structure</td>
+            </tr>
+            <tr>
+              <th scope="row">CSS</th>
+              <td>Layout, light and dark themes, phone support</td>
+            </tr>
+            <tr>
+              <th scope="row">JavaScript</th>
+              <td>Scientific calculations and controls</td>
+            </tr>
+            <tr>
+              <th scope="row">Canvas</th>
+              <td>Panel animation and live graphs</td>
+            </tr>
+            <tr>
+              <th scope="row">Local storage</th>
+              <td>Saving experiment results in the browser</td>
+            </tr>
+            <tr>
+              <th scope="row">Python (Flask)</th>
+              <td>Sending each page to the browser from the laptop</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The website is split into five pages. Every page uses the same header, menu and footer, so it looks like one
+        project. The layout is written for phones first and then adjusted for tablets and laptops, which is why the menu
+        turns into a button on a small screen.</p>
+      <p>The light and dark themes use colour variables in the CSS. A small piece of JavaScript changes one setting on
+        the page when the theme button is pressed, and the browser remembers the choice for the next visit.</p>
+      <p>A short Python program using Flask sends the pages to the browser from the laptop. It needs no internet
+        connection, no database and no extra hardware, so the project can be shown anywhere with just a laptop.</p>
+      <div class="note">
+        <p>Solar Lab is a simplified educational model. Real panels also depend on temperature, shading, dust and
+          electrical losses.</p>
+      </div>
+    </div>
+    <div class="page-end">
+      <a class="btn btn-primary" href="/simulator">Open simulator</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand">Solar Lab</p>
+        <p class="footer-note">An educational simulation. It is not a real-world solar power prediction.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+      </ul>
+    </div>
+    <p class="footer-credit">Made by Raghav Agrahari, Class 9. Science Exhibition 2026.</p>
+  </footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
