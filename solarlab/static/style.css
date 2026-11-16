@@ -51,8 +51,8 @@
     --grad: linear-gradient(135deg, #ffc857, #ff8a3d);
     --glow: color-mix(in srgb, var(--accent) 14%, transparent);
     --glow-2: color-mix(in srgb, var(--accent-2) 9%, transparent);
-    --sky-1: #0b1830;
-    --sky-2: #1d3a63;
+    --sky-1: #3d8fe0;
+    --sky-2: #bfe3ff;
     --ground-1: #1e5a3a;
     --ground-2: #10351f;
     --shadow: 0 12px 30px -12px rgb(0 0 0 / .6);
@@ -378,7 +378,7 @@ main p a:hover {
     transition: background-color .2s, color .2s;
 }
 
-.segmented button + button {
+.segmented button+button {
     border-left: 1px solid var(--line);
 }
 
@@ -539,17 +539,17 @@ main p a:hover {
 
 /* Hide shade controls by default */
 .only-shade {
-  display: none;
+    display: none;
 }
 
 /* Reveal shade controls when shade mode is turned on */
 html[data-shade="on"] .only-shade {
-  display: block; 
+    display: block;
 }
 
 /* Prevent hidden tooltips from stealing mouse clicks on buttons */
 .tip {
-  pointer-events: none;
+    pointer-events: none;
 }
 
 .spotlight {
@@ -1627,44 +1627,212 @@ select {
 }
 
 /* ---------- Simulator layout, tooltip, formula line, jump links, info page ---------- */
-.jump { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
-.jump a { display: inline-block; padding: .45rem .9rem; font-size: .95rem; font-weight: 600; color: var(--text); text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; transition: border-color .2s, color .2s; }
-.jump a:hover { color: var(--accent-text); border-color: var(--accent); }
+.jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+}
 
-.tip-wrap { position: relative; display: inline-block; }
-.toggle-btn { min-height: 44px; padding: 0 1.1rem; font: inherit; font-weight: 600; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; transition: border-color .2s, background .2s; }
-.toggle-btn:hover { border-color: var(--accent); }
-.toggle-btn[aria-pressed="true"] { color: #10202f; background: var(--accent); border-color: var(--accent); }
-.tip { position: absolute; left: 0; top: calc(100% + .5rem); z-index: 30; width: min(19rem, 80vw); padding: .75rem .9rem; font-size: .9rem; line-height: 1.45; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); opacity: 0; visibility: hidden; transition: opacity .2s; }
-.tip-wrap:hover .tip, .tip-wrap:focus-within .tip { opacity: 1; visibility: visible; }
+.jump a {
+    display: inline-block;
+    padding: .45rem .9rem;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: border-color .2s, color .2s;
+}
 
-.formula-title { margin: 1.25rem 0 .4rem; font-size: .85rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-.formula-live { margin: 0; padding: .75rem 1rem; font-family: ui-monospace, Consolas, monospace; font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; }
+.jump a:hover {
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
 
-.prose code, td code, th code, .flow code { padding: .1em .4em; font-size: .92em; background: color-mix(in srgb, var(--accent-2) 12%, var(--surface)); border-radius: 6px; overflow-wrap: anywhere; }
-.flow { display: grid; gap: .75rem; margin: 1.25rem 0; padding: 0; list-style: none; counter-reset: flow; }
-.flow li { position: relative; padding: .9rem 1rem .9rem 3.2rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
-.flow li::before { counter-increment: flow; content: counter(flow); position: absolute; left: .9rem; top: .85rem; display: grid; place-items: center; width: 1.7rem; height: 1.7rem; font-weight: 700; font-size: .9rem; color: #10202f; background: var(--accent); border-radius: 50%; }
-.prose h3 { margin-top: 1.75rem; }
-.prose .stack .formula { margin: .75rem 0; font-size: clamp(1rem, 3.6vw, 1.3rem); }
-.prose .table-wrap { margin-bottom: 1rem; }
+.tip-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.toggle-btn {
+    min-height: 44px;
+    padding: 0 1.1rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+}
+
+.toggle-btn:hover {
+    border-color: var(--accent);
+}
+
+.toggle-btn[aria-pressed="true"] {
+    color: #10202f;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.tip {
+    position: absolute;
+    left: 0;
+    top: calc(100% + .5rem);
+    z-index: 30;
+    width: min(19rem, 80vw);
+    padding: .75rem .9rem;
+    font-size: .9rem;
+    line-height: 1.45;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s;
+}
+
+.tip-wrap:hover .tip,
+.tip-wrap:focus-within .tip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.formula-title {
+    margin: 1.25rem 0 .4rem;
+    font-size: .85rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.formula-live {
+    margin: 0;
+    padding: .75rem 1rem;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .9rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+}
+
+.prose code,
+td code,
+th code,
+.flow code {
+    padding: .1em .4em;
+    font-size: .92em;
+    background: color-mix(in srgb, var(--accent-2) 12%, var(--surface));
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+}
+
+.flow {
+    display: grid;
+    gap: .75rem;
+    margin: 1.25rem 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: flow;
+}
+
+.flow li {
+    position: relative;
+    padding: .9rem 1rem .9rem 3.2rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.flow li::before {
+    counter-increment: flow;
+    content: counter(flow);
+    position: absolute;
+    left: .9rem;
+    top: .85rem;
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    font-weight: 700;
+    font-size: .9rem;
+    color: #10202f;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+.prose h3 {
+    margin-top: 1.75rem;
+}
+
+.prose .stack .formula {
+    margin: .75rem 0;
+    font-size: clamp(1rem, 3.6vw, 1.3rem);
+}
+
+.prose .table-wrap {
+    margin-bottom: 1rem;
+}
 
 /* Seven menu links need a tighter header on tablets */
 @media (min-width: 720px) and (max-width: 1099px) {
-    .nav { gap: .25rem; }
-    .brand { font-size: 1rem; }
-    .nav-links { gap: 0; }
-    .nav-links a { padding-inline: .45rem; font-size: .85rem; }
-    .theme-toggle { padding-inline: .6rem; font-size: .85rem; }
+    .nav {
+        gap: .25rem;
+    }
+
+    .brand {
+        font-size: 1rem;
+    }
+
+    .nav-links {
+        gap: 0;
+    }
+
+    .nav-links a {
+        padding-inline: .45rem;
+        font-size: .85rem;
+    }
+
+    .theme-toggle {
+        padding-inline: .6rem;
+        font-size: .85rem;
+    }
 }
 
 /* Taller charts so labels and the legend have room, especially on phones */
-.chart-grid canvas { height: 260px; }
-.chart-grid.chart-single canvas { height: 300px; }
+.chart-grid canvas {
+    height: 260px;
+}
+
+.chart-grid.chart-single canvas {
+    height: 300px;
+}
+
 @media (min-width: 720px) {
-    .chart-grid canvas { height: 300px; }
-    .chart-grid.chart-single canvas { height: 340px; }
+    .chart-grid canvas {
+        height: 300px;
+    }
+
+    .chart-grid.chart-single canvas {
+        height: 340px;
+    }
 }
 
 /* Stops a wide canvas from stretching the page on small screens */
-.chart-grid > figure, .compare > .panel-card { min-width: 0; }
+.chart-grid>figure,
+.compare>.panel-card {
+    min-width: 0;
+}
