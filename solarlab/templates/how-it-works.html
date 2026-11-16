@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f6fa">
+  <title>How it works | Solar Lab</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("solarlab-theme"); } catch (e) {}
+      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+      var pal = null;
+      try { pal = localStorage.getItem("solarlab-palette"); } catch (e) { }
+      document.documentElement.setAttribute("data-palette", pal || "solar");
+    })();
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="/">Solar Lab</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="label-to-dark">Dark mode</span>
+        <span class="label-to-light">Light mode</span>
+      </button>
+      <button class="menu-btn" id="menu-open" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works" aria-current="page">How it works</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="drawer" id="drawer" aria-label="Menu">
+    <button class="menu-btn" id="menu-close" type="button" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/science">Science</a>
+    <a href="/features">Features</a>
+    <a href="/experiments">Experiments</a>
+    <a href="/simulator">Simulator</a>
+    <a href="/how-it-works">How it works</a>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <h1>How the simulator works</h1>
+      <p class="lead">What every function does, and how the formula grew from the original cosine law to the final one as more factors were added.</p>
+      <ul class="jump"><li><a href="#flow">The big picture</a></li><li><a href="#functions">Every function</a></li><li><a href="#formula">How the formula grew</a></li><li><a href="/simulator">Open simulator →</a></li></ul>
+    </div>
+    <div class="prose">
+      <h2 id="flow">The big picture</h2>
+      <p>Everything starts when you move a control. The simulator then repeats the same few steps, so the picture, the numbers and the graphs always agree.</p>
+      <ol class="flow">
+        <li><strong>You move a slider</strong> (tilt, sun height, intensity, shade) or change the weather.</li>
+        <li><code>update()</code> reads every control and works out θ with <code>calcTheta()</code>.</li>
+        <li><code>calcPower()</code> puts θ, weather, intensity and shade into the formula to get watts.</li>
+        <li>The scene, the numbers, the comparison text, the graphs and the live line are redrawn from that one result.</li>
+      </ol>
+      <h3>Where θ comes from</h3>
+      <p>The panel faces upward by <code>90° − tilt</code>. The sun is <code>sunHeight</code> above the horizon. θ is the gap between those two directions, so <code>θ = |(90° − tilt) − sunHeight|</code>. When the gap is 0°, the panel looks straight at the sun and gets all the light. That is why the best tilt is <code>90° − sun height</code>.</p>
+
+      <h2 id="functions">What each function does</h2>
+      <h3>Maths and charts (<code>core.js</code>)</h3>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Function</th><th scope="col">What it does, in plain words</th></tr></thead><tbody><tr><th scope="row"><code>degToRad(deg)</code></th><td>Turns degrees into radians. JavaScript's <code>Math.cos</code> only understands radians, so every angle goes through this first.</td></tr><tr><th scope="row"><code>calcTheta(tilt, sunHeight)</code></th><td>Finds θ, the angle between the sunlight and the line pointing straight out of the panel: <code>|(90 − tilt) − sunHeight|</code>.</td></tr><tr><th scope="row"><code>calcPower(...)</code></th><td>The formula itself. Multiplies the 100 W rating by weather, intensity, the unshaded share and cos(θ). Returns 0 if θ is 90° or more.</td></tr><tr><th scope="row"><code>readColors()</code></th><td>Reads the colours from the CSS so the drawings match the light or dark theme and the colour style.</td></tr><tr><th scope="row"><code>barChart(...)</code></th><td>Draws a bar chart on a canvas. A bar's height is its value ÷ the maximum × the height of the chart.</td></tr><tr><th scope="row"><code>groupedBarChart(...)</code></th><td>The same, with two bars per label (Panel A and Panel B side by side).</td></tr><tr><th scope="row"><code>lineChart(...)</code></th><td>Draws the live graph and the best-angle curve by joining the points with a line.</td></tr></tbody></table></div>
+      <h3>The simulator (<code>simulator.js</code>)</h3>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Function</th><th scope="col">What it does, in plain words</th></tr></thead><tbody><tr><th scope="row"><code>update()</code></th><td>The main refresh. Reads every control, works out both panels, writes the numbers and redraws the scene and every graph.</td></tr><tr><th scope="row"><code>getPanel(suffix) / updatePanel(p, sun)</code></th><td>Collects the controls of Panel A or B, calculates θ and power, shows the readouts and draws that panel's scene.</td></tr><tr><th scope="row"><code>drawScene(...)</code></th><td>Paints one picture in layers, back to front: sky, sun, weather, ground, shadow, light ray, panel. Clouds and a dimmer sky are drawn only for looks.</td></tr><tr><th scope="row"><code>setMode(mode)</code></th><td>Switches between one panel and two. It sets one word on the page and the CSS hides everything marked for two panels.</td></tr><tr><th scope="row"><code>setShade(on) / shadeOn()</code></th><td>Turns shade on or off. While it is off, shade counts as 0, so the formula behaves as if shade did not exist.</td></tr><tr><th scope="row"><code>compareText(a, b) / reasonText(a, b)</code></th><td>Write the sentences under the panels: which one is higher and by how much, and whether only one thing differs.</td></tr><tr><th scope="row"><code>drawCharts(...)</code></th><td>Redraws the bar graphs of output at tilts 0° to 90° (and Panel A against Panel B).</td></tr><tr><th scope="row"><code>drawCurve(...)</code></th><td>Calculates the output at all 91 tilts and draws the curve. The peak is where θ = 0°, at a tilt of 90° − sun height.</td></tr><tr><th scope="row"><code>liveTick() / drawLive()</code></th><td>Every half second, stores the current output and draws the latest 40 readings, which is the last 20 seconds.</td></tr><tr><th scope="row"><code>runExperiment(key)</code></th><td>Sets the sun, tilt and weather for Experiment A, B or C so the test is fair.</td></tr><tr><th scope="row"><code>saveExperiment(key) / loadResults() / storeResults()</code></th><td>Saves a result in the browser's local storage and reads it back, checking that the saved values are sensible.</td></tr><tr><th scope="row"><code>compareSaved(...) / renderResults()</code></th><td>Fill in the results table and write sentences such as “A produced 2.00× the output of B”.</td></tr><tr><th scope="row"><code>openFeature(name)</code></th><td>Handles links like <code>/simulator?feature=shading</code>: scrolls to that control and highlights it.</td></tr><tr><th scope="row"><code>showFormula(suffix, r)</code></th><td>Writes the formula with the current numbers filled in, shown under each panel.</td></tr></tbody></table></div>
+      <h3>The rest of the site</h3>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Where</th><th scope="col">What it does, in plain words</th></tr></thead><tbody><tr><th scope="row"><code>script.js: applyTheme()</code></th><td>Switches light or dark and remembers the choice.</td></tr><tr><th scope="row"><code>script.js: applyPalette()</code></th><td>Switches the colour style and remembers the choice.</td></tr><tr><th scope="row"><code>script.js: setMenu()</code></th><td>Opens and closes the menu on phones.</td></tr><tr><th scope="row"><code>home.js: drawHomeCharts()</code></th><td>Draws the two charts on the home page from the same formula.</td></tr><tr><th scope="row"><code>app.py</code></th><td>The Flask program. Each route sends one page to the browser. It does no calculations.</td></tr></tbody></table></div>
+
+      <h2 id="formula">How the formula grew</h2>
+      <p>The model started with one idea and gained a factor each time a new real-world effect was added. The example below uses the same conditions each time: sun at 30°, panel flat (tilt 0°, so θ = 60° and cos θ = 0.5), cloudy sky (w = 0.25), 80% sunlight (I = 0.8) and 40% shade (s = 0.4). Watch the result shrink as each factor joins.</p>
+      <div class="stack"><article><span class="tag">Stage 1</span><h3>The cosine law</h3><div class="formula" role="math">P = P<sub>max</sub> × cos(θ)</div><p>Only the angle matters. A perfectly clear sky, full-strength sun, nothing in the way.</p><p><strong>Example result:</strong> 50.0 W</p></article><article><span class="tag">Stage 2</span><h3>Add sunlight intensity</h3><div class="formula" role="math">P = P<sub>max</sub> × I × cos(θ)</div><p>A slider for how strong the sun is, from 0 to 1. At 80%, I = 0.8.</p><p><strong>Example result:</strong> 40.0 W</p></article><article><span class="tag">Stage 3</span><h3>Add weather</h3><div class="formula" role="math">P = P<sub>max</sub> × w × I × cos(θ)</div><p>Clouds let only part of the light through. Cloudy is w = 0.25.</p><p><strong>Example result:</strong> 10.0 W</p></article><article><span class="tag">Stage 4</span><h3>Add shade (the final formula)</h3><div class="formula" role="math">P = P<sub>max</sub> × w × I × (1 − s) × cos(θ)</div><p>A tree or building covers part of the panel. With 40% covered, s = 0.4, so 60% is left.</p><p><strong>Example result:</strong> 6.0 W</p></article></div>
+      <h3>Summary</h3>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Stage</th><th scope="col">Factor added</th><th scope="col">Result</th><th scope="col">Share of the stage before</th></tr></thead><tbody>
+        <tr><th scope="row">1</th><td>cos(θ), θ = 60°</td><td>50.0 W</td><td>—</td></tr>
+        <tr><th scope="row">2</th><td>I = 0.8</td><td>40.0 W</td><td>80%</td></tr>
+        <tr><th scope="row">3</th><td>w = 0.25</td><td>10.0 W</td><td>25%</td></tr>
+        <tr><th scope="row">4</th><td>(1 − s) = 0.6</td><td>6.0 W</td><td>60%</td></tr>
+      </tbody></table></div>
+      <h3>Why the factors are multiplied</h3>
+      <p>Each factor is the fraction of light that survives one effect. If clouds let through 25% and then the shade lets through 60% of that, you keep 0.25 × 0.6 = 15%. Fractions of fractions multiply, and the order does not matter. Adding them would give nonsense, such as a dark, cloudy, shaded panel making more power than a clear one.</p>
+      <h3>Two rules in the code</h3>
+      <ul>
+        <li><strong>No negative power.</strong> If θ is 90° or more, the light misses the front of the panel and <code>calcPower()</code> returns 0.</li>
+        <li><strong>Shade is off until you ask.</strong> With shade off, s = 0, so (1 − s) = 1 and the formula is the same as Stage 3. This is why the old and new answers match when shade is not used.</li>
+      </ul>
+      <div class="note"><p><strong>Assumptions:</strong> the weather values (1.0, 0.6, 0.25) are assumed for the demonstration, and intensity and shade are treated as straight percentages. Real panels lose more power when shade falls across their cells, and they also lose power when hot or dusty. Use the simulator to compare conditions and see trends, not to predict real output.</p></div>
+    </div>
+    <div class="page-end">
+      <a class="btn btn-primary" href="/simulator?feature=lambert">Try the formula in the simulator</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand">Solar Lab</p>
+        <p class="footer-note">An educational simulation. It is not a real-world solar power prediction.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works" aria-current="page">How it works</a></li>
+      </ul>
+    </div>
+    <p class="footer-credit">Made by Raghav Agrahari, Class 9. Science Exhibition 2026.</p>
+  </footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f6fa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Solar Lab | Solar Energy Optimization Simulator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Runs before the page paints so the saved theme never flashes -->
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("solarlab-theme"); } catch (e) {}
+      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+      var pal = null;
+      try { pal = localStorage.getItem("solarlab-palette"); } catch (e) { }
+      document.documentElement.setAttribute("data-palette", pal || "solar");
+    })();
+  </script>
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="#top">Solar Lab</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="label-to-dark">Dark mode</span>
+        <span class="label-to-light">Light mode</span>
+      </button>
+      <button class="menu-btn" id="menu-open" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works">How it works</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="drawer" id="drawer" aria-label="Menu">
+    <button class="menu-btn" id="menu-close" type="button" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/science">Science</a>
+    <a href="/features">Features</a>
+    <a href="/experiments">Experiments</a>
+    <a href="/simulator">Simulator</a>
+    <a href="/how-it-works">How it works</a>
+  </aside>
+
+  <main id="top">
+
+    <section class="hero">
+      <div class="hero-text">
+        <h1>See how sunlight angle changes solar power.</h1>
+        <p class="lead">Solar Lab is an interactive simulator. Tilt a panel, change the weather and compare two setups side by side, then watch the estimated output respond.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/simulator">Open simulator</a>
+          <a class="btn btn-ghost" href="/science">How it works</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <img class="img-light" src="{{ url_for('static', filename='panel-light.svg') }}" alt="A solar panel tilted toward the sun in daylight" width="480" height="320">
+        <img class="img-dark" src="{{ url_for('static', filename='panel-dark.svg') }}" alt="A solar panel at dusk with a dim sun on the horizon" width="480" height="320">
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <h2>About the project</h2>
+      <div class="two-col">
+        <p>A solar panel turns sunlight into electricity, and it works best when the light hits it straight on. When the panel is tilted away, the same beam of light spreads over a larger area, so each part of the panel receives less energy and the output drops.</p>
+        <p>Solar Lab lets visitors see this for themselves. Instead of reading a formula in a textbook, they move a slider to tilt a virtual panel, change the sunlight and the weather, and watch the estimated power change straight away.</p>
+        <p>Two panels can be set up side by side with different conditions, so the difference is easy to see. Guided experiments show how angle and clouds change the output, and a graph follows the results as they happen.</p>
+        <p>Solar Lab is an educational model, not a weather forecast. Real panels are also affected by temperature, dust, shading and electrical losses, which this simplified model leaves out.</p>
+      </div>
+    </section>
+
+    <section class="section" id="science">
+      <h2>The science behind it</h2>
+      <p class="intro">The simulator applies Lambert's cosine law, which says the light a surface receives depends on the cosine of the angle at which it strikes. That gives a simplified model of how much power a panel produces. The formula started small and grew as weather and shade were added, which the <a href="/how-it-works">How it works</a> page explains step by step:</p>
+      <div class="formula" role="math" aria-label="P equals P max times w times I times one minus s times cosine theta">P = P<sub>max</sub> × w × I × (1 − s) × cos(θ)</div>
+      <dl class="terms">
+        <div><dt>P</dt><dd>Estimated output power</dd></div>
+        <div><dt>P<sub>max</sub></dt><dd>Maximum rated power of the panel</dd></div>
+        <div><dt>I</dt><dd>Relative sunlight intensity, from 0 to 1</dd></div>
+        <div><dt>w</dt><dd>Weather factor: 1.0 sunny, 0.6 partly cloudy, 0.25 cloudy (assumed values)</dd></div>
+        <div><dt>s</dt><dd>Fraction of the panel in shade, from 0 (none) to 1 (all). It is 0 unless shade is switched on.</dd></div>
+        <div><dt>θ</dt><dd>Angle between the sunlight and the line pointing straight out of the panel. Output is zero beyond 90°.</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" id="graphs">
+      <h2>The numbers in graphs</h2>
+      <p class="intro">These graphs are drawn by Solar Lab's own code from the same formula the simulator uses, for a 100 W panel in full sunlight.</p>
+      <div class="chart-grid">
+        <figure>
+          <canvas id="home-cos" role="img" aria-label="Bar chart of the percentage of full power at angles from 0 to 90 degrees"></canvas>
+          <figcaption>Lambert's cosine law: the percentage of full power at each angle θ. The drop is slow at first and fast near 90°.</figcaption>
+        </figure>
+        <figure>
+          <canvas id="home-weather" role="img" aria-label="Bar chart of the output of a well-aimed panel in sunny, partly cloudy and cloudy weather"></canvas>
+          <figcaption>Output (W) of a panel aimed straight at the sun in different weather. The weather factors are assumed values.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <h2>What you can do</h2>
+      <ul class="features">
+        <li><h3>Change the angle</h3><p>Tilt the panel with a slider and see the output change instantly.</p></li>
+        <li><h3>Set the weather</h3><p>Switch between sunny, partly cloudy and cloudy conditions.</p></li>
+        <li><h3>Compare two panels</h3><p>Run Panel A and Panel B under different settings side by side.</p></li>
+        <li><h3>Watch a live graph</h3><p>Follow estimated electricity generation as conditions change.</p></li>
+      </ul>
+    </section>
+
+    <section class="section" id="build">
+      <h2>How it is built</h2>
+      <p>Solar Lab is a small website of seven pages that share one design: Home, About, Science, Features, Experiments, Simulator and How it works. Each page is written by hand in HTML, styled with one CSS file and made interactive with a little JavaScript.</p>
+      <ol class="steps">
+        <li><strong>Structure (HTML).</strong> Headings, sections, tables and buttons give every page its content and meaning.</li>
+        <li><strong>Style (CSS).</strong> One stylesheet controls colours, spacing and layout. It is written for phones first, then adds rules for tablets and laptops. Colour variables make the light and dark themes possible.</li>
+        <li><strong>Behaviour (JavaScript).</strong> The theme button, the phone menu, the simulator's calculations, the graphs and the saved experiment results.</li>
+        <li><strong>Serving (Flask).</strong> A short Python program sends each page to the browser. It can run on a laptop or on a hosting service.</li>
+      </ol>
+      <p>Keeping each job separate makes the project easier to understand and fix. If a page looks wrong, the problem is in the HTML or CSS. If a button does nothing, it is in the JavaScript. If a page will not load, it is in the Flask routes.</p>
+      <div class="note"><p>Want the details? The <a href="/how-it-works">How it works</a> page explains every function and how the formula changed as factors were added.</p></div>
+    </section>
+
+    <section class="section" id="experiments">
+      <h2>Experiment mode</h2>
+      <p class="intro">Run three experiments, record the results and let Solar Lab write the comparison.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Experiment</th><th scope="col">Panel condition</th><th scope="col">Expected result</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>Direct sunlight</td><td>Higher output</td></tr>
+            <tr><th scope="row">B</th><td>Oblique sunlight</td><td>Lower output</td></tr>
+            <tr><th scope="row">C</th><td>Cloudy conditions</td><td>Lower output</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section cta">
+      <h2>Try it yourself</h2>
+      <p class="intro">Open the simulator to tilt a solar panel, move the sun and watch the estimated power change.</p>
+      <a class="btn btn-primary" href="/simulator">Open simulator</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand">Solar Lab</p>
+        <p class="footer-note">An educational simulation. It is not a real-world solar power prediction.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works">How it works</a></li>
+      </ul>
+    </div>
+    <p class="footer-credit">Made by Raghav Agrahari, Class 9. Science Exhibition 2026.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script src="{{ url_for('static', filename='core.js') }}"></script>
+  <script src="{{ url_for('static', filename='home.js') }}"></script>
+</body>
+</html>

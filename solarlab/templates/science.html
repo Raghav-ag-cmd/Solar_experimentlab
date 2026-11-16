@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f6fa">
+  <title>The science | Solar Lab</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("solarlab-theme"); } catch (e) {}
+      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+      var pal = null;
+      try { pal = localStorage.getItem("solarlab-palette"); } catch (e) { }
+      document.documentElement.setAttribute("data-palette", pal || "solar");
+    })();
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="/">Solar Lab</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="label-to-dark">Dark mode</span>
+        <span class="label-to-light">Light mode</span>
+      </button>
+      <button class="menu-btn" id="menu-open" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science" aria-current="page">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works">How it works</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="drawer" id="drawer" aria-label="Menu">
+    <button class="menu-btn" id="menu-close" type="button" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/science">Science</a>
+    <a href="/features">Features</a>
+    <a href="/experiments">Experiments</a>
+    <a href="/simulator">Simulator</a>
+    <a href="/how-it-works">How it works</a>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <h1>The science</h1>
+      <p class="lead">A solar panel produces the most power when sunlight hits it straight on. Here is the model Solar Lab uses.</p>
+    </div>
+    <div class="prose">
+      <h2>Why the angle matters</h2>
+      <p>Sunlight carries a fixed amount of energy. When it strikes a panel at a slant, the same beam spreads over a bigger area, so each part of the panel receives less. The angle that matters is the one between the sunlight and the line pointing straight out of the panel (the normal). We call it θ.</p>
+      <p>A torch is a good way to picture it. Shine it straight at a wall and you get a small, bright circle. Tilt the torch and the same light stretches into a larger, dimmer oval. A solar panel behaves the same way: the tilted panel catches the same amount of light, but spread over more area, so each part gets less.</p>
+      <h2>Lambert's cosine law</h2>
+      <p>The torch idea has a name: Lambert's cosine law, from the scientist Johann Heinrich Lambert, who studied light in the 1700s. It says that the light energy a surface receives is proportional to the cosine of the angle between the light and the line pointing straight out of the surface (the normal). At 0° the cosine is 1, so the surface gets all of the light. At 60° it is 0.5, so it gets half. At 90° it is 0, so the light just skims along the surface.</p>
+      <p>Solar Lab uses this law directly. The formula below is Lambert's cosine law multiplied by the panel's rated power and the sunlight intensity. Real panels lose a little more than the law predicts at very large angles, because more light reflects off the glass, but the cosine law explains most of the effect.</p>
+      <h2>The formula</h2>
+      <p>This is the full formula the simulator uses. It began as just the cosine law and grew as intensity, weather and shade were added. The <a href="/how-it-works">How it works</a> page shows each stage.</p>
+      <div class="formula" role="math" aria-label="P equals P max times w times I times one minus s times cosine theta">P = P<sub>max</sub> × w × I × (1 − s) × cos(θ)</div>
+      <dl class="terms">
+        <div><dt>P</dt><dd>Estimated output power in watts</dd></div>
+        <div><dt>P<sub>max</sub></dt><dd>Maximum rated power of the panel</dd></div>
+        <div><dt>I</dt><dd>Relative sunlight intensity, from 0 to 1</dd></div>
+        <div><dt>w</dt><dd>Weather factor: 1.0 sunny, 0.6 partly cloudy, 0.25 cloudy (assumed values)</dd></div>
+        <div><dt>s</dt><dd>Fraction of the panel in shade, from 0 (none) to 1 (all). It is 0 unless shade is switched on.</dd></div>
+        <div><dt>θ</dt><dd>Angle between sunlight and the panel normal. If θ is 90° or more, the output is zero.</dd></div>
+      </dl>
+      <h2>How the code uses the formula</h2>
+      <p>In the simulator, the formula becomes one JavaScript function. It receives the panel's rated power, the weather factor, the sunlight intensity, the shade and the angle. The browser's cosine function works in radians, so the code first converts the angle from degrees. If the angle is 90° or more, the function returns zero instead of a negative number, because a panel cannot produce less than no power.</p>
+      <p>Keeping the calculation in one function means it can be tested on its own. We check it against values we can work out by hand, such as 100% at 0°, 50% at 60° and 0% at 90°, before connecting it to the sliders.</p>
+      <h2>Worked example</h2>
+      <p>A 100 W panel in full sunlight (I = 1):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">θ</th><th scope="col">cos(θ)</th><th scope="col">Output</th></tr></thead>
+          <tbody>
+            <tr><td>0°</td><td>1.000</td><td>100 W</td></tr>
+            <tr><td>30°</td><td>0.866</td><td>86.6 W</td></tr>
+            <tr><td>45°</td><td>0.707</td><td>70.7 W</td></tr>
+            <tr><td>60°</td><td>0.500</td><td>50.0 W</td></tr>
+            <tr><td>75°</td><td>0.259</td><td>25.9 W</td></tr>
+            <tr><td>90°</td><td>0.000</td><td>0 W</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Look at how the output changes. Between 0° and 30° the panel loses only about 13% of its power, so a small error in the angle costs little. Between 60° and 90° the output falls from half to nothing, so the same small change matters much more. This is why the curve of output against angle is flat at the top and steep at the end.</p>
+      <h2>Weather and shading</h2>
+      <p>Clouds lower the intensity I. Solar Lab uses assumed factors, for example 1.0 for sunny, 0.6 for partly cloudy and 0.25 for cloudy. These are chosen for demonstration, not measured. Shading reduces the output further by a percentage you set.</p>
+      <h2>How the weather factor changes the power</h2>
+      <p>Clouds block or scatter part of the sunlight before it reaches the panel, so less light arrives. Solar Lab represents this with a weather factor <em>w</em>, a number between 0 and 1 that says what fraction of the sunlight gets through. The formula multiplies by it: P = P<sub>max</sub> × w × I × (1 − s) × cos(θ).</p>
+      <p>The angle and the weather are two separate effects. The weather decides how much light arrives in the first place, and the angle decides how much of that light lands on the panel. Because they are multiplied, each one scales the result: a cloudy day (w = 0.25) gives a quarter of the power at every angle, and tilting the panel to θ = 60° halves whatever is left.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Weather</th><th scope="col">w</th><th scope="col">Output at θ = 0°</th><th scope="col">Output at θ = 60°</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Sunny</th><td>1.0</td><td>100 W</td><td>50 W</td></tr>
+            <tr><th scope="row">Partly cloudy</th><td>0.6</td><td>60 W</td><td>30 W</td></tr>
+            <tr><th scope="row">Cloudy</th><td>0.25</td><td>25 W</td><td>12.5 W</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The three values of <em>w</em> are assumed for the demonstration. Real clouds vary a lot in thickness, so the real factor changes from day to day.</p>
+      <h2>What the model leaves out</h2>
+      <ul>
+        <li>Temperature: hot panels are less efficient.</li>
+        <li>Dust, dirt and reflection from the glass.</li>
+        <li>Electrical losses in wires and inverters.</li>
+        <li>Changes in the sun's position through the day.</li>
+      </ul>
+      <div class="note"><p>Because of these simplifications, use Solar Lab to compare conditions and see trends, not to predict real electricity bills.</p></div>
+    </div>
+    <div class="page-end">
+      <a class="btn btn-primary" href="/simulator">Open simulator</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand">Solar Lab</p>
+        <p class="footer-note">An educational simulation. It is not a real-world solar power prediction.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/science">Science</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/experiments">Experiments</a></li>
+        <li><a href="/simulator">Simulator</a></li>
+        <li><a href="/how-it-works">How it works</a></li>
+      </ul>
+    </div>
+    <p class="footer-credit">Made by Raghav Agrahari, Class 9. Science Exhibition 2026.</p>
+  </footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

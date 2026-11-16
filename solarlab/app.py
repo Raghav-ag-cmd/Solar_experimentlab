@@ -1,0 +1,41 @@
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/science")
+def science():
+    return render_template("science.html")
+
+
+@app.route("/features")
+def features():
+    return render_template("features.html")
+
+
+@app.route("/experiments")
+def experiments():
+    return render_template("experiments.html")
+
+@app.route("/simulator")
+def simulator():
+    return render_template("simulator.html")
+
+
+@app.route("/how-it-works")
+def how_it_works():
+    return render_template("how-it-works.html")
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
