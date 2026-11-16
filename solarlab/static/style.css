@@ -757,13 +757,6 @@ main {
     display: none;
 }
 
-:root[data-theme="dark"] .img-light {
-    display: none;
-}
-
-:root[data-theme="dark"] .img-dark {
-    display: block;
-}
 
 /* ---------- Content blocks ---------- */
 .two-col {
