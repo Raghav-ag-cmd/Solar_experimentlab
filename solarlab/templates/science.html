@@ -64,14 +64,14 @@
       <p>A torch is a good way to picture it. Shine it straight at a wall and you get a small, bright circle. Tilt the torch and the same light stretches into a larger, dimmer oval. A solar panel behaves the same way: the tilted panel catches the same amount of light, but spread over more area, so each part gets less.</p>
       <h2>Lambert's cosine law</h2>
       <p>The torch idea has a name: Lambert's cosine law, from the scientist Johann Heinrich Lambert, who studied light in the 1700s. It says that the light energy a surface receives is proportional to the cosine of the angle between the light and the line pointing straight out of the surface (the normal). At 0° the cosine is 1, so the surface gets all of the light. At 60° it is 0.5, so it gets half. At 90° it is 0, so the light just skims along the surface.</p>
-      <p>Solar Lab uses this law directly. The formula below is Lambert's cosine law multiplied by the panel's rated power and the sunlight intensity. Real panels lose a little more than the law predicts at very large angles, because more light reflects off the glass, but the cosine law explains most of the effect.</p>
+      <p>Solar Lab uses this law directly. The formula below is Lambert's cosine law multiplied by the panel's rated power, the sunlight strength, the weather and the shade. Real panels lose a little more than the law predicts at very large angles, because more light reflects off the glass, but the cosine law explains most of the effect.</p>
       <h2>The formula</h2>
       <p>This is the full formula the simulator uses. It began as just the cosine law and grew as intensity, weather and shade were added. The <a href="/how-it-works">How it works</a> page shows each stage.</p>
       <div class="formula" role="math" aria-label="P equals P max times w times I times one minus s times cosine theta">P = P<sub>max</sub> × w × I × (1 − s) × cos(θ)</div>
       <dl class="terms">
         <div><dt>P</dt><dd>Estimated output power in watts</dd></div>
         <div><dt>P<sub>max</sub></dt><dd>Maximum rated power of the panel</dd></div>
-        <div><dt>I</dt><dd>Relative sunlight intensity, from 0 to 1</dd></div>
+        <div><dt>I</dt><dd>Relative sunlight strength, from 0 to 1. It falls when the sun is low, because the light travels through more air.</dd></div>
         <div><dt>w</dt><dd>Weather factor: 1.0 sunny, 0.6 partly cloudy, 0.25 cloudy (assumed values)</dd></div>
         <div><dt>s</dt><dd>Fraction of the panel in shade, from 0 (none) to 1 (all). It is 0 unless shade is switched on.</dd></div>
         <div><dt>θ</dt><dd>Angle between sunlight and the panel normal. If θ is 90° or more, the output is zero.</dd></div>

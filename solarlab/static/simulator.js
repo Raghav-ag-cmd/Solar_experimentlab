@@ -178,11 +178,14 @@ function drawScene(el, tilt, sunHeight, weather, shade, sunStrength) {
     const sunX = PIVOT_X - SUN_DISTANCE * Math.cos(degToRad(sunHeight));
     const sunY = PIVOT_Y - SUN_DISTANCE * Math.sin(degToRad(sunHeight));
 
-    // dimmer when cloudy, and dimmer again when the intensity slider is low
-    const brightness = (1 - weather.dim) * (0.25 + 0.75 * sunStrength);
+    // dimmer when cloudy, and dimmer again when the light is weak (low sun). No sun at all at night.
+    const brightness = sunStrength === 0 ? 0 : (1 - weather.dim) * (0.25 + 0.75 * sunStrength);
 
     ctx.clearRect(0, 0, W, H);
     sky();
+    // a darker sky when the sun is low or down
+    ctx.fillStyle = "rgba(6, 12, 32, " + Math.max(0, 0.6 * (1 - sunStrength * 2)) + ")";
+    ctx.fillRect(0, 0, W, H - GROUND_H);
 
     ctx.globalAlpha = brightness;
     sun(sunX, sunY);
@@ -240,7 +243,7 @@ function updatePanel(p, sunHeight) {
 // The page keeps the choice in <html data-mode="one"|"two">. The CSS hides everything
 // marked class="only-two" when the mode is "one".
 
-const modeButtons = document.querySelectorAll(".segmented button");
+const modeButtons = document.querySelectorAll("[data-panels]");
 const titleA = document.getElementById("title-a");
 
 function isOnePanel() {
@@ -332,7 +335,7 @@ function drawCharts(sunHeight, a, b) {
         // One panel: output at every tilt, with the bar nearest to the current tilt highlighted
         const nearest = Math.min(ANGLES.length - 1, Math.round(a.tilt / 15));
         barChart("chart-sweep", labels, ANGLES.map((t) => at(t, a)), nearest);
-        sweepCaption.textContent = "Output (W) of your panel at every tilt, with your weather and intensity" +
+        sweepCaption.textContent = "Output (W) of your panel at every tilt, with your weather and the sunlight at this time" +
             (shadeOn() ? " and shade" : "") + ". The highlighted bar is the tilt closest to where your slider is now.";
         return;
     }
@@ -370,6 +373,10 @@ function drawCurve(sunHeight, a, b) {
     });
 
     const best = 90 - sunHeight;
+    if (intensity === 0) {
+        curveCaption.textContent = "It is night, so every tilt gives 0 W. Move the time of day to when the sun is up.";
+        return;
+    }
     curveCaption.textContent = "Output (W) against tilt for a sun height of " + sunHeight + "\u00B0. " +
         "The curve peaks where \u03B8 = 0\u00B0, which is a tilt of 90\u00B0 \u2212 " + sunHeight + "\u00B0 = " + best + "\u00B0. " +
         "The dashed line marks " + (b ? "each panel's tilt." : "your tilt.");
@@ -544,6 +551,180 @@ document.getElementById("exp-clear").addEventListener("click", () => {
     expStatus.textContent = "Saved results cleared.";
 });
 
+// ---------- Seasons and time of day ----------
+// The season and the time give the sun's height and strength. They are written into the two hidden
+// sliders (#sun and #intensity), so everything else on the page reads them exactly as before.
+
+const LATITUDE = 28;                  // degrees north of the equator. Change this number for another place.
+const SEASONS = {
+    summer: { label: "Summer", short: "Summer", declination: 23.4, note: "Long days. At noon the sun is almost overhead." },
+    spring: { label: "Spring / Autumn", short: "Spr/Aut", declination: 0, note: "Day and night are about equal. The sun reaches a medium height at noon." },
+    winter: { label: "Winter", short: "Winter", declination: -23.4, note: "Short days. Even at noon the sun stays low in the sky." },
+};
+const DAY_START = 5;                  // the day charts run from 5 AM...
+const DAY_END = 19;                   // ...to 7 PM
+const DAY_STEP = 0.25;                // in steps of 15 minutes
+const PHONE_WH = 15;                  // roughly what one phone battery holds, in watt-hours
+
+let season = "spring";
+let hour = 12;                        // time of day in hours, 5 to 19
+
+const seasonButtons = document.querySelectorAll("[data-season]");
+const timeSlider = document.getElementById("time");
+const timeOut = document.getElementById("time-out");
+const seasonNote = document.getElementById("season-note");
+const dayNote = document.getElementById("day-note");
+const sunPanel = document.getElementById("sun-panel");
+
+// Height of the sun above the horizon in degrees (below 0 means night).
+// The Earth turns 15 degrees every hour, and the season tilts the sun's path higher or lower.
+function sunHeightAt(t, declination) {
+    const lat = degToRad(LATITUDE);
+    const dec = degToRad(declination);
+    const hourAngle = degToRad(15 * (t - 12));
+    const s = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(hourAngle);
+    return Math.asin(s) * 180 / Math.PI;
+}
+
+// How strong the sunlight is (0 to 1) for a given sun height. A low sun shines through more air, so it is weaker.
+// air mass = 1 / sin(height). The 0.7 and 0.678 come from a standard approximation used in solar engineering.
+function strengthAt(height) {
+    if (height <= 0) return 0;
+    const airMass = 1 / Math.sin(degToRad(height));
+    return Math.min(1, Math.pow(0.7, Math.pow(airMass, 0.678)) / 0.7);
+}
+
+function daylightHours(declination) {
+    const c = -Math.tan(degToRad(LATITUDE)) * Math.tan(degToRad(declination));
+    return 2 * Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI / 15;
+}
+
+function formatHour(t) {
+    const total = Math.round(t * 60);
+    const hh = Math.floor(total / 60);
+    const mm = total % 60;
+    return (hh % 12 === 0 ? 12 : hh % 12) + ":" + String(mm).padStart(2, "0") + (hh < 12 ? " AM" : " PM");
+}
+
+// Season + time -> sun height and strength, written into the hidden sliders
+function applyClock() {
+    const height = Math.max(0, Math.round(sunHeightAt(hour, SEASONS[season].declination)));
+    sunSlider.value = height;
+    intensitySlider.value = Math.round(strengthAt(height) * 100);
+}
+
+function daySentence(height, percent) {
+    if (height <= 0) return "Night: the sun is below the horizon, so a solar panel makes no power.";
+    if (height < 15) return "The sun is only " + height + "\u00B0 above the horizon, like early morning or evening. Its light passes through a lot of air, so only " + percent + "% of full strength reaches the panel.";
+    if (height < 45) return "The sun is " + height + "\u00B0 up, like morning or afternoon. About " + percent + "% of full-strength light reaches the panel.";
+    return "The sun is high (" + height + "\u00B0), like around midday. About " + percent + "% of full-strength light reaches the panel.";
+}
+
+// Keep the buttons, the time label and the sentences in step with the sliders
+function updateClockUI() {
+    const lab = activeExp !== null;                  // an experiment uses fixed lab conditions
+    const s = SEASONS[season];
+    seasonButtons.forEach((btn) => btn.setAttribute("aria-checked", !lab && btn.dataset.season === season));
+    timeSlider.value = hour;
+    timeOut.textContent = lab ? "lab test" : formatHour(hour);
+    sunPanel.classList.toggle("is-lab", lab);
+    if (lab) {
+        seasonNote.textContent = "";
+        dayNote.textContent = "Lab test: the sun is fixed at " + sunSlider.value + "\u00B0 with full-strength light, so only the thing being tested changes. Move any control to go back to the season and time.";
+        return;
+    }
+    seasonNote.textContent = s.note + " Daylight: " + daylightHours(s.declination).toFixed(1) + " hours. Noon sun: " + Math.round(sunHeightAt(12, s.declination)) + "\u00B0.";
+    dayNote.textContent = daySentence(Number(sunSlider.value), Number(intensitySlider.value));
+}
+
+seasonButtons.forEach((btn) => btn.addEventListener("click", () => {
+    season = btn.dataset.season;
+    applyClock();
+    onControl();
+}));
+timeSlider.addEventListener("input", () => {
+    hour = Number(timeSlider.value);
+    applyClock();
+    onControl();
+});
+document.querySelectorAll("[data-hour]").forEach((btn) => btn.addEventListener("click", () => {
+    hour = Number(btn.dataset.hour);
+    applyClock();
+    onControl();
+}));
+
+// ---------- A day with your panel ----------
+// Power is worked out every 15 minutes from sunrise to sunset. Adding it up (power x time) gives energy in Wh.
+
+const daySummaryA = document.getElementById("day-summary-a");
+const daySummaryB = document.getElementById("day-summary-b");
+
+function powerAt(p, t, declination) {
+    const height = sunHeightAt(t, declination);
+    if (height <= 0) return 0;
+    return calcPower(p.tilt, height, p.factor, strengthAt(height), p.shade);
+}
+
+function dayEnergy(p, declination) {
+    let wh = 0;
+    for (let t = 4; t < 20; t += DAY_STEP) wh += powerAt(p, t + DAY_STEP / 2, declination) * DAY_STEP;
+    return wh;
+}
+
+// The fixed tilt that makes the most energy over the whole day
+function bestDayTilt(p, declination) {
+    let best = { tilt: 0, wh: -1 };
+    for (let tilt = 0; tilt <= 90; tilt++) {
+        const wh = dayEnergy({ tilt, factor: p.factor, shade: p.shade }, declination);
+        if (wh > best.wh) best = { tilt, wh };
+    }
+    return best;
+}
+
+function describeDay(name, p, declination) {
+    const wh = dayEnergy(p, declination);
+    const best = bestDayTilt(p, declination);
+    let text = name + " makes about " + Math.round(wh) + " Wh on a " + SEASONS[season].label.toLowerCase() +
+        " day, roughly " + Math.round(wh / PHONE_WH) + " phone charges.";
+    text += Math.abs(best.tilt - p.tilt) <= 2
+        ? " Its tilt is already about the best for this season."
+        : " The best fixed tilt for this season is " + best.tilt + "\u00B0, which would give about " + Math.round(best.wh) + " Wh.";
+    return text;
+}
+
+function drawDay(a, b) {
+    const dec = SEASONS[season].declination;
+    const times = [];
+    for (let t = DAY_START; t <= DAY_END + 1e-9; t += DAY_STEP) times.push(t);
+    const at = (i) => (i - DAY_START) / DAY_STEP;
+
+    const series = [{ name: b ? "Panel A" : "Your panel", color: "accent", values: times.map((t) => powerAt(a, t, dec)) }];
+    if (b) series.push({ name: "Panel B", color: "accent2", values: times.map((t) => powerAt(b, t, dec)) });
+    lineChart("chart-day", series, {
+        xTicks: [[6, "6 AM"], [9, "9 AM"], [12, "12 PM"], [15, "3 PM"], [18, "6 PM"]].map(([t, label]) => [at(t), label]),
+        markers: activeExp === null ? [{ index: at(hour), color: "accent" }] : [],
+        peaks: true,
+    });
+    document.getElementById("day-caption").textContent = "Output (W) from 5 AM to 7 PM on a " + SEASONS[season].label.toLowerCase() +
+        " day. Sunrise to sunset is about " + daylightHours(dec).toFixed(1) + " hours.";
+
+    daySummaryA.textContent = describeDay(b ? "Panel A" : "Your panel", a, dec);
+    if (b) daySummaryB.textContent = describeDay("Panel B", b, dec);
+
+    // energy in each season for the same tilt, weather and shade
+    const keys = Object.keys(SEASONS);
+    const labels = keys.map((k) => SEASONS[k].short);
+    const energy = (p) => keys.map((k) => dayEnergy(p, SEASONS[k].declination));
+    const eA = energy(a);
+    const eB = b ? energy(b) : [];
+    const top = Math.max(...eA, ...eB, 1);
+    const max = Math.max(200, Math.ceil(top / 200) * 200);
+    if (b) groupedBarChart("chart-seasons", labels, eA, eB, max);
+    else barChart("chart-seasons", labels, eA, keys.indexOf(season), max);
+    document.getElementById("season-caption").textContent = "Energy (Wh) made in one day in each season with your tilt and weather" +
+        (b ? " (A and B)" : "") + ". Winter makes the least because the days are short and the sun stays low.";
+}
+
 // ---------- The formula with your numbers ----------
 // Shows P = 100 x w x I x (1 - s) x cos(theta) with this panel's real values filled in.
 function showFormula(suffix, r) {
@@ -564,6 +745,7 @@ function update() {
     sunOut.textContent = sunHeight;
     intensity = Number(intensitySlider.value) / 100;
     intensityOut.textContent = intensitySlider.value;
+    updateClockUI();
 
     C = readColors();                               // pick up the current colour style
     const a = updatePanel(panelA, sunHeight);
@@ -581,12 +763,16 @@ function update() {
     latest = { a, b };
     drawCharts(sunHeight, a, b);
     drawCurve(sunHeight, a, b);
+    drawDay(a, b);
     drawLive();
 }
 
 // When the person changes a control, any experiment that was set up no longer matches it
 function onControl() {
-    activeExp = null;
+    if (activeExp !== null) {                       // leaving the lab test: go back to the season and time
+        activeExp = null;
+        applyClock();
+    }
     markActive();
     update();
 }
@@ -607,7 +793,9 @@ new MutationObserver(update).observe(document.documentElement, {
 
 const FEATURES = {
     "angle": { target: "tilt-a", hint: "Panel angle: drag the tilt slider and watch the panel and the output change." },
-    "intensity": { target: "intensity", hint: "Sunlight intensity: lower the slider to see a dimmer sun give less power." },
+    "seasons": { target: "season-buttons", hint: "Seasons and time of day: pick a season and drag the time. A low sun in the morning, evening and winter gives weaker light and less power." },
+    "intensity": { target: "season-buttons", hint: "Sunlight strength now follows the season and the time of day. Pick a season and drag the time to see the light get weaker when the sun is low." },
+    "day": { target: "day-section", hint: "A day with your panel: see power rise and fall from sunrise to sunset, the energy made in a day, and the best tilt for the season." },
     "weather": { target: "weather-a", hint: "Weather: choose sunny, partly cloudy or cloudy and watch the weather factor change the output." },
     "shading": { target: "shade-a", shade: true, hint: "Shading: shade is now included. Drag the shade slider and see a dark cover grow over the panel while the output falls. Use the Shade button at the top to remove it again." },
     "comparison": { target: "compare-section", mode: "two", hint: "Two-panel comparison: change Panel A and Panel B differently and read the comparison below." },
@@ -645,6 +833,7 @@ function openFeature(name) {
 
 // ---------- Start ----------
 
+applyClock();
 renderResults();
 setMode(isOnePanel() ? "one" : "two");      // match the buttons to the saved choice and draw once
 openFeature(new URLSearchParams(window.location.search).get("feature"));

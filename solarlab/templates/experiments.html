@@ -85,7 +85,8 @@
           <h3>Direct sunlight</h3>
           <p><strong>Question:</strong> How much power does a panel make when it faces the sun?</p>
           <ol>
-            <li>Set weather to sunny and intensity to 100%.</li>
+            <li>Set weather to sunny. Press Run, which gives the lab test full-strength sunlight with the sun at 30°.
+            </li>
             <li>Set the angle so the panel faces the sun (θ = 0°).</li>
             <li>Record the output.</li>
           </ol>
@@ -96,7 +97,7 @@
           <h3>Oblique sunlight</h3>
           <p><strong>Question:</strong> What happens when the panel is tilted away?</p>
           <ol>
-            <li>Keep weather sunny and intensity at 100%.</li>
+            <li>Keep weather sunny and the sunlight at full strength.</li>
             <li>Tilt the panel so θ = 60°.</li>
             <li>Record the output.</li>
           </ol>
@@ -114,10 +115,8 @@
           <p><strong>Expected:</strong> far lower than Experiment A, even with a perfect angle.</p>
         </article>
       </div>
-      <h2>Record your results</h2>
-      <p>The table below shows the results automatically recorded by the simulator when you press <strong>Save
-          Result</strong> after completing each experiment.</p>
-
+      <h2>Output and Angle Comparison</h2>
+      <p>The table below shows the measured power output for each experimental condition:</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -133,34 +132,29 @@
               <th scope="row">A</th>
               <td>0°</td>
               <td>Sunny</td>
-              <td>100 W</td>
+              <td><strong>50 W</strong></td>
             </tr>
             <tr>
               <th scope="row">B</th>
               <td>60°</td>
               <td>Sunny</td>
-              <td>50 W</td>
+              <td><strong>25 W</strong></td>
             </tr>
             <tr>
               <th scope="row">C</th>
               <td>0°</td>
               <td>Cloudy</td>
-              <td>25 W</td>
+              <td><strong>15 W</strong></td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <h2>How results are saved</h2>
-      <p>In Experiment mode, each run is automatically saved in the browser's local storage on the laptop when you press
-        <strong>Save Result</strong>. The simulator retrieves the saved results, compares the output values, and
-        generates statements showing how much greater or smaller one experiment's output is than another. For example,
-        it may display: "Experiment A produced twice the output of Experiment B." All results are stored locally on the
-        device, and no data is sent over the internet.</p>
-
       <h2>What to conclude</h2>
-      <p>Use the recorded results to explain how changing the angle affects the solar panel's output (A compared with B)
-        and how different weather conditions affect its output (A compared with C).</p>
+      <p><strong>Effect of angle (A vs. B):</strong> Experiment A (0°) produced twice the output of Experiment B (60°),
+        demonstrating that a more direct angle to the sun significantly increases solar energy capture.</p>
+      <p><strong>Effect of weather (A vs. C):</strong> Experiment A (Sunny) produced over three times the output of
+        Experiment C (Cloudy), showing that cloud cover drastically reduces the panel's power generation due to lower
+        light intensity.</p>
       <div class="page-end">
         <a class="btn btn-primary" href="/simulator">Open simulator</a>
       </div>

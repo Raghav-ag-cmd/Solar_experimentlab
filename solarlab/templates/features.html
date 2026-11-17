@@ -85,11 +85,19 @@
           <p><a class="try-link" href="/simulator?feature=angle">Try it in the simulator →</a></p>
         </article>
         <article>
-          <h3>Sunlight intensity</h3>
-          <p>Set the strength of the sunlight from 0 to 100% to see how a dimmer sun affects power.</p>
-          <p><strong>How it is built:</strong> A second slider whose value, from 0 to 1, becomes the I in the formula.
-          </p>
-          <p><a class="try-link" href="/simulator?feature=intensity">Try it in the simulator →</a></p>
+          <h3>Seasons and time of day</h3>
+          <p>Pick summer, spring / autumn or winter, then move the time from sunrise to sunset. The sun's height and the
+            strength of its light follow real-life rules, so evening and winter sunlight is weaker.</p>
+          <p><strong>How it is built:</strong> The season and time give the sun's height, and the sun's height gives the
+            light strength (a low sun shines through more air). Both become the I and the angle in the formula.</p>
+          <p><a class="try-link" href="/simulator?feature=seasons">Try it in the simulator →</a></p>
+        </article>
+        <article>
+          <h3>A day with your panel</h3>
+          <p>See the power rise and fall through the day, the energy made in one day, and the best tilt for each season.</p>
+          <p><strong>How it is built:</strong> The same formula is calculated every 15 minutes from sunrise to sunset and
+            added up. A loop tries every tilt to find the best one.</p>
+          <p><a class="try-link" href="/simulator?feature=day">Try it in the simulator →</a></p>
         </article>
         <article>
           <h3>Weather conditions</h3>

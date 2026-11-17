@@ -74,6 +74,7 @@
       <ul class="jump" aria-label="Jump to a section">
         <li><a href="#compare-section">Panels</a></li>
         <li class="only-two"><a href="#comparison-section">Comparison</a></li>
+        <li><a href="#day-section">Your day</a></li>
         <li><a href="#live-section">Live graph</a></li>
         <li><a href="#curve-section">Best angle</a></li>
         <li><a href="#graphs-section">Graphs</a></li>
@@ -88,6 +89,40 @@
       <button class="mini-btn" id="feature-hint-close" type="button">Got it</button>
     </div>
 
+    <section class="sun-panel" id="sun-panel" aria-labelledby="sun-title">
+      <h2 id="sun-title">Choose the day</h2>
+      <p class="intro">The sun is not the same all day or all year. Pick a season, then move the time from sunrise to
+        sunset to see what a solar panel really gets.</p>
+      <div class="sun-grid">
+        <div class="control" id="season-control">
+          <span class="control-title" id="season-label">Season</span>
+          <div class="segmented season-buttons" id="season-buttons" role="radiogroup" aria-labelledby="season-label">
+            <button type="button" role="radio" aria-checked="false" data-season="summer">Summer</button>
+            <button type="button" role="radio" aria-checked="true" data-season="spring">Spring / Autumn</button>
+            <button type="button" role="radio" aria-checked="false" data-season="winter">Winter</button>
+          </div>
+          <p class="season-note" id="season-note"></p>
+        </div>
+        <div class="control">
+          <label for="time">Time of day: <output id="time-out">12:00 PM</output></label>
+          <input type="range" id="time" min="5" max="19" step="0.25" value="12">
+          <div class="btn-row">
+            <button class="mini-btn" type="button" data-hour="8">Morning 8 AM</button>
+            <button class="mini-btn" type="button" data-hour="12">Noon</button>
+            <button class="mini-btn" type="button" data-hour="17">Evening 5 PM</button>
+          </div>
+        </div>
+      </div>
+      <dl class="readout readout-wide">
+        <div><dt>Sun height</dt><dd><span id="sun-out">62</span>°</dd></div>
+        <div><dt>Sunlight strength</dt><dd><span id="intensity-out">97</span>%</dd></div>
+      </dl>
+      <p class="day-note" id="day-note" aria-live="polite"></p>
+      <!-- The season and time set these two values. They stay as hidden sliders so the rest of the code can read them. -->
+      <input type="range" id="sun" min="0" max="90" step="any" value="62" hidden>
+      <input type="range" id="intensity" min="0" max="100" step="any" value="97" hidden>
+    </section>
+
     <div class="sim-toolbar">
       <div class="control">
         <span class="control-title" id="mode-label">Panels</span>
@@ -95,15 +130,6 @@
           <button type="button" role="radio" aria-checked="false" data-panels="one">One panel</button>
           <button type="button" role="radio" aria-checked="true" data-panels="two">Two panels</button>
         </div>
-      </div>
-      <div class="control">
-        <label for="sun">Sun height<span class="only-two"> (same for both panels)</span>: <output
-            id="sun-out">45</output>°</label>
-        <input type="range" id="sun" min="10" max="80" value="45">
-      </div>
-      <div class="control">
-        <label for="intensity">Sunlight intensity: <output id="intensity-out">100</output>%</label>
-        <input type="range" id="intensity" min="0" max="100" value="100">
       </div>
       <div class="control">
         <span class="control-title" id="shade-label">Shade</span>
@@ -226,6 +252,34 @@
       </dl>
     </section>
 
+    <section class="section" id="day-section">
+      <h2>A day with your panel</h2>
+      <p class="intro">Power through the day for the season you picked, using your panel's tilt and weather. The dashed
+        line is the time you chose. Output rises towards noon and falls again because the sun climbs and then drops.</p>
+      <div class="chart-grid chart-single">
+        <figure>
+          <canvas id="chart-day" role="img" aria-label="Line graph of panel output in watts from 5 AM to 7 PM"></canvas>
+          <figcaption id="day-caption"></figcaption>
+        </figure>
+      </div>
+      <p class="day-summary" id="day-summary-a"></p>
+      <p class="day-summary only-two" id="day-summary-b"></p>
+      <h3>Season by season</h3>
+      <div class="chart-grid chart-single">
+        <figure>
+          <canvas id="chart-seasons" role="img" aria-label="Bar chart of energy made in one day in each season"></canvas>
+          <figcaption id="season-caption"></figcaption>
+        </figure>
+      </div>
+      <div class="note">
+        <p><strong>What Wh means:</strong> watt-hours. A 100 W panel working at full power for one hour makes 100 Wh.
+          A phone battery holds roughly 15 Wh. <strong>What the model leaves out:</strong> it assumes the sun is straight
+          in front of the way the panel tilts, like a panel that also turns left and right to follow the sun. A real fixed panel
+          gets less light early in the morning and late in the evening, so real daily energy is lower. The numbers are for a
+          place about 28° north of the equator and do not include wiring or battery losses.</p>
+      </div>
+    </section>
+
     <section class="section" id="live-section">
       <h2>Live graph</h2>
       <p class="intro">The output of your panel over the last 20 seconds. Move any slider and watch the line
@@ -273,7 +327,7 @@
 
     <section class="section" id="experiment-section">
       <h2>Experiment mode</h2>
-      <p class="intro">Press <strong>Run</strong> to set up a fair test (one panel, sun height 30°), look at the
+      <p class="intro">Press <strong>Run</strong> to set up a fair test (a lab test: one panel, sun at 30°, full-strength light), look at the
         output, then press <strong>Save result</strong>. Results stay in this browser. Read more on the <a
           href="/experiments">experiments page</a>.</p>
       <div class="stack three">
